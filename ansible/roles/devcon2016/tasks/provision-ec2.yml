@@ -64,11 +64,11 @@
     storage_account: testaccount001
     storage_container: testvm001
     storage_blob: testvm001.vhd
-    admin_username: admin
-    admin_password: Password!
+    admin_username: adobrien
+    admin_password: DevOps2015
     network_interfaces: testnic001
     image:
-      offer: CentOS
-      publisher: OpenLogic
-      sku: '7.1'
+      offer: WindowsServer
+      publisher: MicrosoftWindowsServer
+      sku: '2016-Technical-Preview-with-Containers'
       version: latest
