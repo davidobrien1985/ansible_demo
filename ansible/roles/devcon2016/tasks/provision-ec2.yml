@@ -23,16 +23,28 @@
     allocation_method: Static
     name: publicip001
 
-- name: Create security group that allows SSH
+- name: Create security group that allows RDP and Winrm
   azure_rm_securitygroup:
     resource_group: Testing
     name: secgroup001
     rules:
-      - name: SSH
+      - name: RDP
         protocol: Tcp
-        destination_port_range: 22
+        destination_port_range: 3389
         access: Allow
         priority: 101
+        direction: Inbound
+      - name: Winrm
+        protocol: Tcp
+        destination_port_range: 5985
+        access: Allow
+        priority: 102
+        direction: Inbound
+      - name: Winrm
+        protocol: Tcp
+        destination_port_range: 5986
+        access: Allow
+        priority: 103
         direction: Inbound
 
 - name: Create NIC
