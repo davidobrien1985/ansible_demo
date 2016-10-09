@@ -1,0 +1,3 @@
+---
+# tasks file for devcon2016
+- include: provision-ec2.yml

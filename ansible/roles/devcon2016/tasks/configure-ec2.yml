@@ -1,0 +1,52 @@
+---
+- name: Include the default vars from the cube roles
+  include_vars: /container/ansible/roles/cube/defaults/main.yml
+
+- name: Wait for 5 minutes to give user_data script a chance to complete
+  pause:
+    minutes: 5
+
+- name: Copy cubelicense file 1 to s3downloads folder to be used during installation
+  win_copy:
+    src: /container/ansible/roles/cube/files/cubelicense1.lic
+    dest: 'C:\\s3downloads\\cubelicense1.lic'
+
+- name: Install Cube 6.4.0
+  raw: "$proc = Start-Process -FilePath \"C:\\s3downloads\\{{ cube_setup_exe }}\" -ArgumentList '/lic=\"C:\\s3downloads\\cubelicense1.lic\" /VERYSILENT' -PassThru ; $proc.WaitForExit()"
+
+- name: Copy cubelicense file 2 to CUBE program folder
+  win_copy:
+    src: /container/ansible/roles/cube/files/cubelicense2.lic
+    dest: 'C:\\Program Files (x86)\\Citilabs\\Licensing\\NodeLocked\\cubelicense2.lic'
+
+- name: Copy domjoin usercreds file to EC2 instance
+  win_copy:
+    src: /container/ansible/roles/cube/files/cubedomjoin.txt
+    dest: 'C:\\s3downloads\\cubedomjoin.txt'
+
+- name: Join computer to domain
+  raw: "$usercreds = Get-Content C:\\s3downloads\\cubedomjoin.txt; $user = \"{{ domainname }}\\$($usercreds.Split(',')[0])\"; $password = $usercreds.Split(',')[1]; $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force; $mycreds = New-Object System.Management.Automation.PSCredential ($user, $secpasswd); Add-Computer -ComputerName $env:COMPUTERNAME -Credential $mycreds -DomainName {{ domainname }} -OUPath \"{{ oupath }}\" -Verbose"
+
+- name: Copy cloudwatch config to remote node
+  win_template:
+    src: /container/ansible/roles/cube/templates/AWS.EC2.Windows.CloudWatch.json.j2
+    dest: 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Settings\\AWS.EC2.Windows.CloudWatch.json'
+
+- name: Copy ec2config config file to remote node
+  win_template:
+    src: /container/ansible/roles/cube/templates/Ec2Config.exe.config.j2
+    dest: 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Ec2Config.exe.config'
+
+- name: Restart Ec2ConfigService
+  win_service:
+    name: ec2config
+    state: restarted
+    start_mode: auto
+
+- name: Remove temporary s3downloads folder
+  win_file:
+    path: "C:\\s3downloads"
+    state: absent
+
+- name: Restart Computer
+  raw: "Restart-Computer -Force"

@@ -1,0 +1,108 @@
+#jinja2: newline_sequence:'\r\n'
+<?xml version="1.0"?>
+
+<configuration>
+  <configSections>
+    <sectionGroup name="common">
+      <section name="logging" type="Common.Logging.ConfigurationSectionHandler, Common.Logging" />
+    </sectionGroup>
+  </configSections>
+  <appSettings>
+
+    <!--
+    <add key="AWSAccessKey" value="" />
+    <add key="AWSSecretKey" value="" />
+    -->
+
+    <add key="ClientSettingsProvider.ServiceUri" value="" />
+    <add key="DesiredStateDocumentUpdateEnabled" value="true" />
+    <add key="SsmPollFrequencyMinutes" value="5" />
+    <add key="MessageDispatcherEnabled" value="true" />
+    <add key="GetMessagesVisibilityTimeoutInSeconds" value="600" />
+    <add key="ManifestLocation" value="https://s3.amazonaws.com/aws-ssm-{Region}/manifest.json" />
+    <add key="UpdateInstanceInfoEnabled" value="true" />
+    <add key="OfflineModeEnabled" value="false" />
+    <add key="ErrorThreshold" value="40"/>
+    <add key="DirectoryServiceUrl" value="" />
+    <add key="FindPluginsInSeparateAppDomain" value="true" />
+    <add key="IpcAuthorizedGroup" value="Administrators" />
+    <add key="MaxFailCountPerDocument" value="15" />
+    <add key="MaxRebootsPerDocument" value="15" />
+    <!--Allow time in seconds for normal plugin execution to finish. Value = 8 hours-->
+    <add key="NormalPluginExecutionTimeoutInSeconds" value="28800" />
+    <!--Allow time in seconds for plugin execution soft stop. Value = 2 hours-->
+    <add key="SoftStopPluginExecutionTimeoutInSeconds" value="7200" />
+    <!--Allow time in seconds for plugin execution hard stop. Value = 20 seconds-->
+    <add key="HardStopPluginExecutionTimeoutInSeconds" value="20" />
+    <add key="PluginsDir" value="Plugins" />
+    <add key="QuartzThreadPoolSize" value="5" />
+    <add key="SleepBetweenDocumentRunsInSeconds" value="30" />
+    <add key="TimeOutInSecondsBeforeReboot" value="30" />
+    <add key="SerialPortLoggingEnabled" value="true" />
+    <add key="ReApplyOnServiceRestart" value="false" />
+    <!--ExecutionMode can serial or parallel, default is serial-->
+    <add key="PluginSerialExecutionMode" value="true"/>
+    <add key="DocumentExecutionSerialMode" value="false"/>
+    <add key="DocumentExecutionBatchSize" value="5"/>
+    <add key="FirstBootConfigurationWaitTimeInSeconds" value="120"/>
+    <add key="UseRegisterComputerApi" value="false"/>
+    <add key="DisablePluginFramework" value="false"/>
+    <add key="S3LogUpload" value="true"/>
+    <add key="S3LogBucket" value=""/>
+    <add key="S3LogKey" value=""/>
+
+
+  </appSettings>
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0,Profile=Client" />
+    <supportedRuntime version="v2.0.50727" />
+  </startup>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider"
+             type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+             serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider"
+             type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+             serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
+  <runtime>
+    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+      <probing privatePath="Plugins;Ssm;Ssm\Packages;Packages" />
+      <dependentAssembly>
+        <assemblyIdentity name="log4net" publicKeyToken="669e0ddf0bb1aa2a" culture="neutral" />
+        <bindingRedirect oldVersion="0.0.0.0-1.2.13.0" newVersion="1.2.13.0" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+  <common>
+    <logging>
+      <logging>
+        <factoryAdapter type="Common.Logging.Log4Net.Log4NetLoggerFactoryAdapter, Common.Logging.Log4net1211">
+          <arg key="configType" value="FILE-WATCH" />
+          <arg key="configFile" value="~/log4net.config" />
+        </factoryAdapter>
+      </logging>
+    </logging>
+  </common>
+  <system.net>
+    <defaultProxy>
+      <proxy 
+        proxyaddress="{{ awsproxy }}"
+        bypassonlocal="true"
+      />
+      <bypasslist>
+        <add address="169.254.169.250"/>
+        <add address="169.254.169.251"/>
+        <add address="169.254.169.254"/>
+      </bypasslist>
+    </defaultProxy>
+  </system.net>
+</configuration>

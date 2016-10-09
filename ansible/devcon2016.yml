@@ -1,0 +1,16 @@
+---
+- name: Provision EC2 instances
+  gather_facts: false
+  hosts:
+  - 127.0.0.1
+  connection: local
+  force_handlers: True
+  roles:
+  - devcon2016
+
+#- name: Configure AWS instances
+#  gather_facts: false
+#  hosts:
+#  - devcon2016
+#  tasks:
+#  - include: ansible/roles/devcon2016/tasks/configure-ec2.yml

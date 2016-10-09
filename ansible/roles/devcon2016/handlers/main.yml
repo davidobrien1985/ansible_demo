@@ -1,0 +1,6 @@
+---
+# handlers file for cube
+- name: Remove temporary EC2 key
+  ec2_key:
+    name: ansible-temp
+    state: absent
