@@ -40,7 +40,7 @@
         access: Allow
         priority: 102
         direction: Inbound
-      - name: Winrm
+      - name: Winrm_s
         protocol: Tcp
         destination_port_range: 5986
         access: Allow
