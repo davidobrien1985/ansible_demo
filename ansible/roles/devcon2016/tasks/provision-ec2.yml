@@ -1,11 +1,4 @@
 ---
-- name: "aws creds"
-  local_action:
-    module: ec2
-    state: absent
-    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-
 - name: Create temporary EC2 key
   ec2_key:
     name: ansible-temp
