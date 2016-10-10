@@ -2,5 +2,5 @@
 # handlers file for devcon2016
 - name: Remove temporary EC2 key
   ec2_key:
-    name: ansible-temp
+    name: "{{ ec2_key_name }}"
     state: absent
