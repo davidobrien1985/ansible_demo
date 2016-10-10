@@ -325,6 +325,6 @@ $Params = @{
 # Use PowerShell splatting to pass parameters to the DSC configuration being invoked
 # For more info about splatting, run: Get-Help -Name about_Splatting
 DscMetaConfigs @Params
-
+Set-DscLocalConfigurationManager -Path . -Verbose -Force
 Stop-Transcript
 </powershell>
