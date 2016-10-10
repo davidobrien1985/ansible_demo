@@ -31,7 +31,7 @@
     wait: true
     vpc_subnet_id: "{{ vpc_subnet_id }}"
     instance_profile_name: "{{ devcon2016_iam_role }}"
-    assign_public_ip: no
+    assign_public_ip: yes
     user_data: "{{ lookup('file', 'roles/devcon2016/files/win_ec2_user_data') }}"
     count: "{{ instances_count }}"
     monitoring: "{{ enable_monitoring }}"
@@ -47,7 +47,7 @@
 
 - name: Wait for winrm to come up
   wait_for:
-    host: "{{ item.private_ip }}"
+    host: "{{ item.public_ip }}"
     port: 5986
     delay: 60
     timeout: 320
@@ -65,9 +65,9 @@
 
 - name: add win ec2 instance(s) to inventory
   add_host:
-    name: "{{ item.item.private_dns_name}}"
+    name: "{{ item.item.public_dns_name}}"
     groups: 'devcon2016'
-    ansible_ssh_host: "{{ item.item.private_dns_name }}"
+    ansible_ssh_host: "{{ item.item.public_dns_name }}"
     ansible_ssh_port: "5986"
     ansible_ssh_user: 'Administrator'
     ansible_ssh_pass: '{{ item.win_password }}'
