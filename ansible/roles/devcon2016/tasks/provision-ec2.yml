@@ -73,3 +73,18 @@
     ansible_ssh_pass: '{{ item.win_password }}'
     ansible_connection: 'winrm'
   with_items: win_ec2_passwords.results
+
+- name: Create ELB
+  ec2_elb_lb:
+    name: "devcon2016"
+    state: present
+    instance_ids: "{{ item.id }}"
+    purge_instance_ids: true
+    subnets:
+      - "{{ vpc_subnet_id }}"
+    listeners:
+      - protocol: http # options are http, https, ssl, tcp
+        load_balancer_port: 80
+        instance_port: 80
+  with_items: win_ec2_instances.instances
+  register: elb
