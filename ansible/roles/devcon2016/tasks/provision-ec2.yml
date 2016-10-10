@@ -79,7 +79,7 @@
     name: "devcon2016"
     state: present
     instance_ids: "{{ item.id }}"
-    purge_instance_ids: true
+    purge_instance_ids: false
     subnets:
       - "{{ vpc_subnet_id }}"
     listeners:
