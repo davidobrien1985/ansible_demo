@@ -311,8 +311,8 @@ Configuration DscMetaConfigs
 $Params = @{
      RegistrationUrl = 'https://we-agentservice-prod-1.azure-automation.net/accounts/35c9a044-590f-48b1-9859-b51b20354bbc';
      RegistrationKey = 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow==';
-     ComputerName = @('localhost');
-     NodeConfigurationName = 'trivialweb.isvbox';
+     ComputerName = @("$ENV:COMPUTERNAME");
+     NodeConfigurationName = "{{ azure_automation_node_config }}";
      RefreshFrequencyMins = 30;
      ConfigurationModeFrequencyMins = 15;
      RebootNodeIfNeeded = $False;
@@ -325,6 +325,6 @@ $Params = @{
 # Use PowerShell splatting to pass parameters to the DSC configuration being invoked
 # For more info about splatting, run: Get-Help -Name about_Splatting
 DscMetaConfigs @Params
-Set-DscLocalConfigurationManager -Path . -Verbose -Force
+Set-DscLocalConfigurationManager -ComputerName $env:COMPUTERNAME -Path .\DscMetaConfigs -Verbose -Force
 Stop-Transcript
 </powershell>
