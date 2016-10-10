@@ -8,9 +8,9 @@
   roles:
   - devcon2016
 
-#- name: Configure AWS instances
-#  gather_facts: false
-#  hosts:
-#  - devcon2016
-#  tasks:
-#  - include: ansible/roles/devcon2016/tasks/configure-ec2.yml
+- name: Configure AWS instances
+  gather_facts: false
+  hosts:
+  - devcon2016
+  tasks:
+  - include: ansible/roles/devcon2016/tasks/configure-ec2.yml
