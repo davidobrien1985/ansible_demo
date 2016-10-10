@@ -7,9 +7,9 @@ Param (
 )
 
 # Prepare environment
-$region = "{{ awsregion }}"
-$bucket = "{{ awsbucket }}"
-$keyPrefix = "{{ awsbucketfolderpath }}/"
+$region = "ap-southeast-2"
+$bucket = "dobrien-dev"
+$keyPrefix = "devcon2016/"
 $localPath = "C:\s3downloads\"
 
 Start-Transcript -Path C:\user_data.log
@@ -197,24 +197,9 @@ Write-Verbose "PS Remoting has been successfully configured for Ansible."
 Enable-PSRemoting -Force
 Restart-Service -Name winrm
 
-# Enable CloudWatch in EC2Config
-$EC2SettingsFile="C:\Program Files\Amazon\Ec2ConfigService\Settings\Config.xml"
-$xml = [xml](get-content $EC2SettingsFile)
-$xmlElement = $xml.get_DocumentElement()
-$xmlElementToModify = $xmlElement.Plugins
-
-foreach ($element in $xmlElementToModify.Plugin)
-{
-    if ($element.name -eq "AWS.EC2.Windows.CloudWatch.PlugIn")
-    {
-        $element.State="Enabled"
-    }
-}
-$xml.Save($EC2SettingsFile)
-
 Start-Sleep -Seconds 30
 
-$iamrole = Invoke-RestMethod -Uri "http://169.254.169.254/latest/meta-data/iam/security-credentials/{{ devcon2016_iam_role }}"
+$iamrole = Invoke-RestMethod -Uri "http://169.254.169.254/latest/meta-data/iam/security-credentials/packer-windows"
 
 $instanceId = Invoke-RestMethod -Method Get -Uri http://169.254.169.254/latest/meta-data/local-hostname
 
@@ -231,6 +216,115 @@ foreach ( $object in $objects) {
 }
 
 & "C:\windows\system32\tzutil.exe" /s "AUS Eastern Standard Time"
+
+# The DSC configuration that will generate metaconfigurations
+[DscLocalConfigurationManager()]
+Configuration DscMetaConfigs 
+{ 
+    param 
+    ( 
+        [Parameter(Mandatory=$True)] 
+        [String]$RegistrationUrl,
+
+        [Parameter(Mandatory=$True)] 
+        [String]$RegistrationKey,
+
+        [Parameter(Mandatory=$True)] 
+        [String[]]$ComputerName,
+
+        [Int]$RefreshFrequencyMins = 30, 
+
+        [Int]$ConfigurationModeFrequencyMins = 15, 
+
+        [String]$ConfigurationMode = "ApplyAndMonitor", 
+
+        [String]$NodeConfigurationName,
+
+        [Boolean]$RebootNodeIfNeeded= $False,
+
+        [String]$ActionAfterReboot = "ContinueConfiguration",
+
+        [Boolean]$AllowModuleOverwrite = $False,
+
+        [Boolean]$ReportOnly
+    )
+
+
+    if(!$NodeConfigurationName -or $NodeConfigurationName -eq "") 
+    { 
+        $ConfigurationNames = $null 
+    } 
+    else 
+    { 
+        $ConfigurationNames = @($NodeConfigurationName) 
+    }
+
+    if($ReportOnly)
+    {
+       $RefreshMode = "PUSH"
+    }
+    else
+    {
+       $RefreshMode = "PULL"
+    }
+
+    Node $ComputerName
+    {
+
+        Settings 
+        { 
+            RefreshFrequencyMins = $RefreshFrequencyMins 
+            RefreshMode = $RefreshMode 
+            ConfigurationMode = $ConfigurationMode 
+            AllowModuleOverwrite = $AllowModuleOverwrite 
+            RebootNodeIfNeeded = $RebootNodeIfNeeded 
+            ActionAfterReboot = $ActionAfterReboot 
+            ConfigurationModeFrequencyMins = $ConfigurationModeFrequencyMins 
+        }
+
+        if(!$ReportOnly)
+        {
+           ConfigurationRepositoryWeb AzureAutomationDSC 
+            { 
+                ServerUrl = $RegistrationUrl 
+                RegistrationKey = $RegistrationKey 
+                ConfigurationNames = $ConfigurationNames 
+            }
+
+            ResourceRepositoryWeb AzureAutomationDSC 
+            { 
+               ServerUrl = $RegistrationUrl 
+               RegistrationKey = $RegistrationKey 
+            }
+        }
+
+        ReportServerWeb AzureAutomationDSC 
+        { 
+            ServerUrl = $RegistrationUrl 
+            RegistrationKey = $RegistrationKey 
+        }
+    } 
+}
+
+# Create the metaconfigurations
+# TODO: edit the below as needed for your use case
+$Params = @{
+     RegistrationUrl = 'https://we-agentservice-prod-1.azure-automation.net/accounts/35c9a044-590f-48b1-9859-b51b20354bbc';
+     RegistrationKey = 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow==';
+     ComputerName = @('localhost');
+     NodeConfigurationName = 'trivialweb.isvbox';
+     RefreshFrequencyMins = 30;
+     ConfigurationModeFrequencyMins = 15;
+     RebootNodeIfNeeded = $False;
+     AllowModuleOverwrite = $False;
+     ConfigurationMode = 'ApplyAndMonitor';
+     ActionAfterReboot = 'ContinueConfiguration';
+     ReportOnly = $False;  # Set to $True to have machines only report to AA DSC but not pull from it
+}
+
+# Use PowerShell splatting to pass parameters to the DSC configuration being invoked
+# For more info about splatting, run: Get-Help -Name about_Splatting
+DscMetaConfigs @Params
 
 Stop-Transcript
 </powershell>
