@@ -1,7 +1,7 @@
 ---
 - name: Create temporary EC2 key
   ec2_key:
-    name: ansible-temp
+    name: devcon-temp
     state: present
   register: ec2key
   notify:
