@@ -1,6 +1,6 @@
 ---
 - name: Include the default vars from the devcon2016 roles
-  include_vars: /container/ansible/roles/devcon2016/defaults/main.yml
+  include_vars: roles/devcon2016/defaults/main.yml
 
 - name: Wait for 5 minutes to give user_data script a chance to complete
   pause:
@@ -8,7 +8,7 @@
 
 - name: Copy AA DSC template to remote node
   win_template:
-    src: /container/ansible/roles/devcon2016/templates/configure_dsc.ps1.j2
+    src: roles/devcon2016/templates/configure_dsc.ps1.j2
     dest: 'C:\\Windows\temp\configure_dsc.ps1'
 
 - name: Onboard node to Azure Automation DSC
@@ -16,7 +16,7 @@
 
 - name: Copy ec2config config file to remote node
   win_template:
-    src: /container/ansible/roles/devcon2016/templates/Ec2Config.exe.config.j2
+    src: roles/devcon2016/templates/Ec2Config.exe.config.j2
     dest: 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Ec2Config.exe.config'
 
 - name: Restart Ec2ConfigService
