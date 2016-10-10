@@ -1,74 +1,75 @@
-- name: Create storage account
-  azure_rm_storageaccount:
-    resource_group: Testing
-    name: testaccount001
-    account_type: Standard_LRS
+---
+- name: Create temporary EC2 key
+  ec2_key:
+    name: ansible-temp
+    state: present
+  register: ec2key
+  notify:
+  - Remove temporary EC2 key
 
-- name: Create virtual network
-  azure_rm_virtualnetwork:
-    resource_group: Testing
-    name: testvn001
-    address_prefixes: "10.10.0.0/16"
+- name: Create aws-creds directory
+  file:
+    path: ~/aws-creds
+    state: directory
 
-- name: Add subnet
-  azure_rm_subnet:
-    resource_group: Testing
-    name: subnet001
-    address_prefix: "10.10.0.0/24"
-    virtual_network: testvn001
+- name: Save EC2 key as pem file
+  copy:
+    content: "{{ ec2key.key.private_key }}"
+    dest: ~/aws-creds/ec2key.pem
 
-- name: Create public ip
-  azure_rm_publicipaddress:
-    resource_group: Testing
-    allocation_method: Static
-    name: publicip001
+- name: Prepare user_data script
+  template:
+    src: roles/devcon2016/templates/win_ec2_user_data.j2
+    dest: roles/devcon2016/files/win_ec2_user_data
 
-- name: Create security group that allows RDP and Winrm
-  azure_rm_securitygroup:
-    resource_group: Testing
-    name: secgroup001
-    rules:
-      - name: RDP
-        protocol: Tcp
-        destination_port_range: 3389
-        access: Allow
-        priority: 101
-        direction: Inbound
-      - name: Winrm
-        protocol: Tcp
-        destination_port_range: 5985
-        access: Allow
-        priority: 102
-        direction: Inbound
-      - name: Winrm_s
-        protocol: Tcp
-        destination_port_range: 5986
-        access: Allow
-        priority: 103
-        direction: Inbound
+- name: Launch instance(s)
+  ec2:
+    key_name: "{{ ec2_key_name }}"
+    group_id: "{{ security_group }}"
+    instance_type: "{{ ec2_instance_size }}"
+    image: "{{ ami_id }}"
+    wait: true
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    instance_profile_name: "{{ devcon2016_iam_role }}"
+    assign_public_ip: no
+    user_data: "{{ lookup('file', 'roles/devcon2016/files/win_ec2_user_data') }}"
+    count: "{{ instances_count }}"
+    monitoring: "{{ enable_monitoring }}"
+    instance_tags:
+      "{{ ec2_instance_tags }}"
+    volumes:
+      - device_name: /dev/xvdf
+        volume_type: gp2
+        volume_size: "{{ ec2_data_disk_size }}"
+        encrypted: true
+        delete_on_termination: true
+  register: win_ec2_instances
 
-- name: Create NIC
-  azure_rm_networkinterface:
-    resource_group: Testing
-    name: testnic001
-    virtual_network: testvn001
-    subnet: subnet001
-    public_ip_name: publicip001
-    security_group: secgroup001
+- name: Wait for winrm to come up
+  wait_for:
+    host: "{{ item.private_ip }}"
+    port: 5986
+    delay: 60
+    timeout: 320
+    state: started
+  with_items: win_ec2_instances.instances
 
-- name: Create virtual machine
-  azure_rm_virtualmachine:
-    resource_group: Testing
-    name: testvm001
-    vm_size: Standard_D1
-    storage_account: testaccount001
-    storage_container: testvm001
-    storage_blob: testvm001.vhd
-    admin_username: adobrien
-    admin_password: DevOps2015
-    network_interfaces: testnic001
-    image:
-      offer: WindowsServer
-      publisher: MicrosoftWindowsServer
-      sku: '2016-Technical-Preview-with-Containers'
-      version: latest
+- name: obtain initial passwords for win ec2 instances
+  ec2_win_password:
+    instance_id: "{{ item.id }}"
+    key_file: "~/aws-creds/ec2key.pem"
+    wait: yes
+    wait_timeout: 600
+  with_items: win_ec2_instances.instances
+  register: win_ec2_passwords
+
+- name: add win ec2 instance(s) to inventory
+  add_host:
+    name: "{{ item.item.private_dns_name}}"
+    groups: 'devcon2016'
+    ansible_ssh_host: "{{ item.item.private_dns_name }}"
+    ansible_ssh_port: "5986"
+    ansible_ssh_user: 'Administrator'
+    ansible_ssh_pass: '{{ item.win_password }}'
+    ansible_connection: 'winrm'
+  with_items: win_ec2_passwords.results

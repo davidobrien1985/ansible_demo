@@ -1,5 +1,5 @@
 ---
-ami_id: 'ami-cdd3e0ae' # AMI ID to build from, accepted as command line param
+ami_id: 'ami-c82804ab' # AMI ID to build from, accepted as command line param
 ec2_key_name: ansible-temp #temporary key to use to decrypt the local admin password. gets deleted after deployment
 ec2_instance_size: 't2.medium' # AWS instance type to deploy, accepted as command line param
 ec2_instance_tags: {App: devcon2016} # Tag that gets applied to new instances
