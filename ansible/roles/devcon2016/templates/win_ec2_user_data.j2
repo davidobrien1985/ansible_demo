@@ -217,114 +217,43 @@ foreach ( $object in $objects) {
 
 & "C:\windows\system32\tzutil.exe" /s "AUS Eastern Standard Time"
 
-# The DSC configuration that will generate metaconfigurations
-[DscLocalConfigurationManager()]
-Configuration DscMetaConfigs 
+Install-Module cchoco -Verbose -Force
+Install-Module xNetworking -Verbose -Force
+
+Configuration trivialweb 
 { 
-    param 
-    ( 
-        [Parameter(Mandatory=$True)] 
-        [String]$RegistrationUrl,
+    Import-DscResource -ModuleName cChoco 
+    Import-DscResource -ModuleName xNetworking
 
-        [Parameter(Mandatory=$True)] 
-        [String]$RegistrationKey,
+    Node "isvbox" {   
 
-        [Parameter(Mandatory=$True)] 
-        [String[]]$ComputerName,
-
-        [Int]$RefreshFrequencyMins = 30, 
-
-        [Int]$ConfigurationModeFrequencyMins = 15, 
-
-        [String]$ConfigurationMode = "ApplyAndMonitor", 
-
-        [String]$NodeConfigurationName,
-
-        [Boolean]$RebootNodeIfNeeded= $False,
-
-        [String]$ActionAfterReboot = "ContinueConfiguration",
-
-        [Boolean]$AllowModuleOverwrite = $False,
-
-        [Boolean]$ReportOnly
-    )
-
-
-    if(!$NodeConfigurationName -or $NodeConfigurationName -eq "") 
-    { 
-        $ConfigurationNames = $null 
-    } 
-    else 
-    { 
-        $ConfigurationNames = @($NodeConfigurationName) 
-    }
-
-    if($ReportOnly)
-    {
-       $RefreshMode = "PUSH"
-    }
-    else
-    {
-       $RefreshMode = "PULL"
-    }
-
-    Node $ComputerName
-    {
-
-        Settings 
+        cChocoInstaller installChoco 
         { 
-            RefreshFrequencyMins = $RefreshFrequencyMins 
-            RefreshMode = $RefreshMode 
-            ConfigurationMode = $ConfigurationMode 
-            AllowModuleOverwrite = $AllowModuleOverwrite 
-            RebootNodeIfNeeded = $RebootNodeIfNeeded 
-            ActionAfterReboot = $ActionAfterReboot 
-            ConfigurationModeFrequencyMins = $ConfigurationModeFrequencyMins 
+            InstallDir = "C:\choco" 
         }
 
-        if(!$ReportOnly)
-        {
-           ConfigurationRepositoryWeb AzureAutomationDSC 
-            { 
-                ServerUrl = $RegistrationUrl 
-                RegistrationKey = $RegistrationKey 
-                ConfigurationNames = $ConfigurationNames 
-            }
-
-            ResourceRepositoryWeb AzureAutomationDSC 
-            { 
-               ServerUrl = $RegistrationUrl 
-               RegistrationKey = $RegistrationKey 
-            }
-        }
-
-        ReportServerWeb AzureAutomationDSC 
+        WindowsFeature installIIS 
         { 
-            ServerUrl = $RegistrationUrl 
-            RegistrationKey = $RegistrationKey 
+            Ensure="Present" 
+            Name="Web-Server" 
         }
-    } 
+
+        xFirewall WebFirewallRule 
+        { 
+            Direction = "Inbound" 
+            Name = "Web-Server-TCP-In" 
+            DisplayName = "Web Server (TCP-In)" 
+            Enabled = "True"
+            Action = "Allow" 
+            Protocol = "TCP" 
+            LocalPort = "80" 
+            Ensure = "Present" 
+        }
+    }    
 }
 
-# Create the metaconfigurations
-# TODO: edit the below as needed for your use case
-$Params = @{
-     RegistrationUrl = 'https://we-agentservice-prod-1.azure-automation.net/accounts/35c9a044-590f-48b1-9859-b51b20354bbc';
-     RegistrationKey = 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow==';
-     ComputerName = @("$ENV:COMPUTERNAME");
-     NodeConfigurationName = "{{ azure_automation_node_config }}";
-     RefreshFrequencyMins = 30;
-     ConfigurationModeFrequencyMins = 15;
-     RebootNodeIfNeeded = $False;
-     AllowModuleOverwrite = $False;
-     ConfigurationMode = 'ApplyAndMonitor';
-     ActionAfterReboot = 'ContinueConfiguration';
-     ReportOnly = $False;  # Set to $True to have machines only report to AA DSC but not pull from it
-}
+trivialweb -OutputPath .
+Start-DscConfiguration -Path .\trivialweb -Wait -Verbose
 
-# Use PowerShell splatting to pass parameters to the DSC configuration being invoked
-# For more info about splatting, run: Get-Help -Name about_Splatting
-DscMetaConfigs @Params
-Set-DscLocalConfigurationManager -ComputerName $env:COMPUTERNAME -Path .\DscMetaConfigs -Verbose -Force
 Stop-Transcript
 </powershell>
