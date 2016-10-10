@@ -12,3 +12,4 @@ awsbucketfolderpath: devcon2016 # name of folder in S3 bucket
 devcon2016_iam_role: packer-windows # name of IAM role applied to DevCon2016 instances
 enable_monitoring: yes # specify if EC2 monitoring should be enabled
 ec2_data_disk_size: 500 # size in GB of data disk on EC2 instances
+azure_automation_node_config: 'trivialweb.isvbox''
