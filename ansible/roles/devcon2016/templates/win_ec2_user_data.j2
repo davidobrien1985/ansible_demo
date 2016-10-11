@@ -1,4 +1,3 @@
-<powershell>
 Param (
     [string]$SubjectName = $env:COMPUTERNAME,
     [int]$CertValidityDays = 365,
@@ -9,7 +8,7 @@ Param (
 # Prepare environment
 $region = "ap-southeast-2"
 $bucket = "dobrien-dev"
-$keyPrefix = "devcon2016/"
+$keyPrefix = "windows_soe/dscmodules.zip"
 $localPath = "C:\s3downloads\"
 
 Start-Transcript -Path C:\user_data.log
@@ -203,29 +202,19 @@ $iamrole = Invoke-RestMethod -Uri "http://169.254.169.254/latest/meta-data/iam/s
 
 $instanceId = Invoke-RestMethod -Method Get -Uri http://169.254.169.254/latest/meta-data/local-hostname
 
-$objects = Get-S3Object -BucketName $bucket -KeyPrefix $keyPrefix -AccessKey $iamrole.AccessKeyId -SecretKey $iamrole.SecretAccessKey -SessionToken $iamrole.Token -Region $region
-
 New-Item -Path $localPath -ItemType Directory -Force
 
-foreach ( $object in $objects) {
-  $localFileName = $object.Key -replace $keyPrefix, ''
-  if ($localFileName -ne '') {
-    $localFilePath = Join-Path $localPath $localFileName
-    Copy-S3Object -BucketName $bucket -Key $object.Key -LocalFile $localFilePath -AccessKey $iamrole.AccessKeyId -SecretKey $iamrole.SecretAccessKey -SessionToken $iamrole.Token -Region $region
-  }
-}
+Copy-S3Object -BucketName $bucket -Key $keyPrefix -LocalFile c:\s3downloads\dscmodules.zip -AccessKey $iamrole.AccessKeyId -SecretKey $iamrole.SecretAccessKey -SessionToken $iamrole.Token -Region $region
+Expand-Archive C:\s3downloads\dscmodules.zip -DestinationPath 'C:\Program Files\WindowsPowerShell\Modules' -Force -Verbose
 
 & "C:\windows\system32\tzutil.exe" /s "AUS Eastern Standard Time"
-
-Install-Module cchoco -Verbose -Force
-Install-Module xNetworking -Verbose -Force
-
+$dsc = @"
 Configuration trivialweb 
 { 
     Import-DscResource -ModuleName cChoco 
     Import-DscResource -ModuleName xNetworking
 
-    Node "isvbox" {   
+    Node "localhost" {   
 
         cChocoInstaller installChoco 
         { 
@@ -254,6 +243,10 @@ Configuration trivialweb
 
 trivialweb -OutputPath .
 Start-DscConfiguration -Path .\trivialweb -Wait -Verbose
+"@
+
+Set-Content -Path c:\windows\temp\dsc.ps1 -Value $dsc -Force
+
+. c:\windows\temp\dsc.ps1
 
 Stop-Transcript
-</powershell>
