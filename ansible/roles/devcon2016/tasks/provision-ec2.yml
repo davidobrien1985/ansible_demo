@@ -68,7 +68,7 @@
   with_items: win_ec2_instances.instances
   register: elb
 
-- name: Create Route53 address
+- name: Create Route53 entry
   route53:
     command: create
     zone: "{{ route53_zone }}"
