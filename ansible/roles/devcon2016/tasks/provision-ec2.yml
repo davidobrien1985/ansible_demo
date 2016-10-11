@@ -66,7 +66,7 @@
         load_balancer_port: 80
         instance_port: 80
   with_items: win_ec2_instances.instances
-  register: elb
+  register: web_elb
 
 - name: Create Route53 entry
   route53:
@@ -74,10 +74,9 @@
     zone: "{{ route53_zone }}"
     record: "{{ route53_name }}.{{ route53_zone }}"
     type: A
-    value:  "{{ item.dns_name }}"
+    value:  "{{ web_elb.elb.dns_name }}"
     ttl: 7200
     wait: yes
-  with_items: elb
 
 - name: Wait for winrm to come up
   wait_for:
