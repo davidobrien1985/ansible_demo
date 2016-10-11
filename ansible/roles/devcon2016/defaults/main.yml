@@ -2,7 +2,8 @@
 ami_id: 'ami-c82804ab' # AMI ID to build from, accepted as command line param
 ec2_key_name: devcon-temp #temporary key to use to decrypt the local admin password. gets deleted after deployment
 ec2_instance_size: 't2.medium' # AWS instance type to deploy, accepted as command line param
-ec2_instance_tags: {App: devcon2016} # Tag that gets applied to new instances
+ec2_instance_tags: {App: devcon2016_v1} # Tag that gets applied to new instances
+ec2_instance_tags_old: {App: devcon2016} # EC2 instances with this tag will be deleted
 instances_count: 1 # number of instances to deploy, accepted as command line param
 vpc_subnet_id: subnet-9856a2ee # name of VPC subnet to put instances in to
 security_group: sg-56622d32 # name of security group to apply to new instances
