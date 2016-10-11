@@ -1,3 +1,4 @@
+<powershell>
 Param (
     [string]$SubjectName = $env:COMPUTERNAME,
     [int]$CertValidityDays = 365,
@@ -250,3 +251,4 @@ Set-Content -Path c:\windows\temp\dsc.ps1 -Value $dsc -Force
 . c:\windows\temp\dsc.ps1
 
 Stop-Transcript
+</powershell>
