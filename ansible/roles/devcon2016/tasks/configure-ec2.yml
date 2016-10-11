@@ -6,6 +6,11 @@
   pause:
     minutes: 5
 
+- name: Copy new index.html to web server
+  win_template:
+    src: roles/devcon2016/templates/index.html.j2
+    dest: 'C:\\inetpub\\wwwroot\\index.html'
+
 - name: Copy AA DSC template to remote node
   win_template:
     src: roles/devcon2016/templates/configure_dsc.ps1.j2
