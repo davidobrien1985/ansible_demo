@@ -15,3 +15,5 @@ enable_monitoring: yes # specify if EC2 monitoring should be enabled
 ec2_data_disk_size: 500 # size in GB of data disk on EC2 instances
 azure_automation_node_config: 'trivialweb.isvbox'
 aa_registrationkey: 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow=='
+route53_zone: versent-innovation.com.au
+route53_name: devcon2016

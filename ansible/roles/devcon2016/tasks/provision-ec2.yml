@@ -96,3 +96,14 @@
         instance_port: 80
   with_items: win_ec2_instances.instances
   register: elb
+
+- name: Create Route53 address
+  route53:
+    command: create
+    zone: {{ route53_zone }}
+    record: {{ route53_name }}
+    type: A
+    ttl: 7200
+    value: {{ item.name }}
+    wait: yes
+  with_items: elb
