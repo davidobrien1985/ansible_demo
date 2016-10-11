@@ -14,21 +14,7 @@
 - name: Onboard node to Azure Automation DSC
   raw: 'powershell.exe -ExecutionPolicy Bypass -File C:\\Windows\temp\configure_dsc.ps1'
 
-- name: Copy ec2config config file to remote node
-  win_template:
-    src: roles/devcon2016/templates/Ec2Config.exe.config.j2
-    dest: 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Ec2Config.exe.config'
-
-- name: Restart Ec2ConfigService
-  win_service:
-    name: ec2config
-    state: restarted
-    start_mode: auto
-
 - name: Remove temporary s3downloads folder
   win_file:
     path: "C:\\s3downloads"
     state: absent
-
-- name: Restart Computer
-  raw: "Restart-Computer -Force"
