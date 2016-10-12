@@ -79,7 +79,7 @@
 
 - name: Print the ELB output
   debug:
-    msg: "{{ item }}"
+    msg: "{{ item.results }}"
   with_items: web_elb
 
 - name: Create Route53 entry
@@ -88,10 +88,9 @@
     zone: "{{ route53_zone }}"
     record: "{{ route53_name }}.{{ route53_zone }}"
     type: A
-    value: "{{ item.results[0].elb.dns_name }}"
+    value: "{{ web_elb.results[0].elb.dns_name }}"
     ttl: 7200
     wait: yes
-  with_items: web_elb
 
 - name: obtain initial passwords for win ec2 instances
   ec2_win_password:
