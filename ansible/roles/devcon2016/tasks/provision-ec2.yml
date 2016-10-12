@@ -66,17 +66,12 @@
         load_balancer_port: 80
         instance_port: 80
   with_items: win_ec2_instances.instances
-  register: web_elb
-
-- name: Gather facts about a particular ELB 
-  ec2_elb_facts:
-    names: "{{ elb_name }}"
-  register: elb_facts
+  register: web_elb.results[0]
 
 - name: Print the ELB output
   debug:
-    msg: "{{ item.dns_name }}"
-  with_items: elb_facts.elbs
+    msg: "{{ item.elb.dns_name }}"
+  with_items: web_elb.results[0]
 
 - name: Create Route53 entry
   route53:
@@ -84,10 +79,10 @@
     zone: "{{ route53_zone }}"
     record: "{{ route53_name }}.{{ route53_zone }}"
     type: A
-    value: "{{ item.dns_name }}"
+    value: "{{ item.elb.dns_name }}"
     ttl: 7200
     wait: yes
-  with_items: elb_facts.elbs
+  with_items: web_elb.results[0]
 
 - name: Wait for winrm to come up
   wait_for:
