@@ -16,6 +16,5 @@ ec2_data_disk_size: 500 # size in GB of data disk on EC2 instances
 azure_automation_node_config: 'trivialweb.isvbox'
 aa_registrationkey: 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow=='
 route53_zone: versent-innovation.com.au
-alias_hosted_zone_id: Z3MJ0BVQ832SCI
 route53_name: devcon2016
 elb_name: devcon2016
