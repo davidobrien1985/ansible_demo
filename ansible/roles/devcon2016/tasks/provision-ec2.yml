@@ -68,6 +68,8 @@
   with_items: win_ec2_instances.instances
   register: web_elb
 
+- debug: var=web_elb
+
 - name: Create Route53 entry
   route53:
     command: create
