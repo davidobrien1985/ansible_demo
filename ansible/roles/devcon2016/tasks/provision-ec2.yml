@@ -85,7 +85,7 @@
     command: create
     zone: "{{ route53_zone }}"
     record: "{{ route53_name }}.{{ route53_zone }}"
-    type: A
+    type: CNAME
     value: "{{ web_elb.results[0].elb.dns_name }}"
     ttl: 7200
     wait: yes
