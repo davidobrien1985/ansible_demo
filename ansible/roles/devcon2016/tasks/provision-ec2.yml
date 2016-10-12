@@ -78,9 +78,7 @@
   register: web_elb
 
 - name: Print the ELB output
-  debug:
-    msg: "{{ item.results }}"
-  with_items: web_elb
+  debug: var=web_elb
 
 - name: Create Route53 entry
   route53:
