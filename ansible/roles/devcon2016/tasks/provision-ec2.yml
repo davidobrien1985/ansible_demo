@@ -47,7 +47,7 @@
 
 - name: Create ELB
   ec2_elb_lb:
-    name: "devcon2016"
+    name: "{{ elb_name }}"
     state: present
     instance_ids: "{{ item.id }}"
     purge_instance_ids: false
@@ -68,7 +68,15 @@
   with_items: win_ec2_instances.instances
   register: web_elb
 
-- debug: var=web_elb
+- name: Gather facts about a particular ELB 
+  ec2_elb_facts:
+    names: "{{ elb_name }}"
+  register: elb_facts
+
+- name: Print the ELB output
+  debug:
+    msg: "{{ item.dns_name }}"
+  with_items: elb_facts.elbs
 
 - name: Create Route53 entry
   route53:
@@ -76,9 +84,10 @@
     zone: "{{ route53_zone }}"
     record: "{{ route53_name }}.{{ route53_zone }}"
     type: A
-    value: "{{ web_elb.results.dns_name }}"
+    value: "{{ item.dns_name }}"
     ttl: 7200
     wait: yes
+  with_items: elb_facts.elbs
 
 - name: Wait for winrm to come up
   wait_for:

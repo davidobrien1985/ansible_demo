@@ -17,3 +17,4 @@ azure_automation_node_config: 'trivialweb.isvbox'
 aa_registrationkey: 'l1+yBCsj09DuHhR7CofZpbBZVi12TetENk/uE/Rw9SopFDtQCZc+cRlTWiIffChZvddnjnVSXbxcxXblUpJ9ow=='
 route53_zone: versent-innovation.com.au
 route53_name: devcon2016
+elb_name: devcon2016
